@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Application</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    #background-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      min-width: 100%;
+      min-height: 100%;
+      z-index: -1;
+    }
+    .container {
+      margin-top: 50px;
+    }
+    .card {
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+      background-color: #007bff;
+      color: #fff;
+      border-radius: 10px 10px 0 0;
+    }
+    .card-body {
+      text-align: center;
+    }
+    .weather-icon {
+      width: 100px;
+      height: 100px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <video autoplay muted loop id="background-video">
+    <source src="./videos/background.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Weather Information</h3>
+          </div>
+          <div class="card-body">
+            <form id="weather-form">
+              <div class="form-group">
+                <label for="city">Enter City Name:</label>
+                <input type="text" class="form-control" id="city" placeholder="Enter city name">
+              </div>
+              <button type="submit" class="btn btn-primary">Get Weather</button>
+            </form>
+            <div id="weather-info" style="display: none;">
+              <img src="" id="weather-icon" class="weather-icon" alt="Weather Icon">
+              <h2 id="temperature"></h2>
+              <h4 id="condition"></h4>
+              <p id="location"></p>
+              <p id="humidity"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Custom JS -->
+  <script>
+    $(document).ready(function() {
+      $('#weather-form').submit(function(event) {
+        event.preventDefault();
+        let city = $('#city').val();
+        fetchWeather(city);
+      });
+
+      function fetchWeather(city) {
+        fetch(`http://api.weatherapi.com/v1/current.json?key=fc2ec1424b5e41068c813428242502&q=${city}`)
+        .then(response => response.json())
+        .then(data => {
+          updateWeatherInfo(data);
+          updateBackground(data);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred. Please try again.');
+        });
+      }
+
+      function updateWeatherInfo(data) {
+        $('#weather-icon').attr('src', data.current.condition.icon);
+        $('#temperature').text(`${data.current.temp_c} °C`);
+        $('#condition').text(data.current.condition.text);
+        $('#location').text(`${data.location.name}, ${data.location.country}`);
+        $('#humidity').text(`Humidity: ${data.current.humidity}%`);
+        $('#weather-info').show();
+      }
+
+      function updateBackground(data) {
+        let condition = data.current.condition.text.toLowerCase();
+        let backgroundVideos = {
+          'clear': 'video-clear.mp4',
+          'partly cloudy': 'video-partly-cloudy.mp4',
+          'cloudy': 'video-cloudy.mp4',
+          'rain': 'video-rain.mp4'
+          // Add more conditions as needed
+        };
+        $('#background-video source').attr('src', backgroundVideos[condition] || 'default-video.mp4');
+        $('#background-video')[0].load();
+      }
+    });
+  </script>
+</body>
+</html>
